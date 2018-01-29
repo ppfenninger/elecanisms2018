@@ -35,15 +35,67 @@ int16_t main(void) {
     IFS0bits.T1IF = 0;      // lower Timer1 interrupt flag
     T1CONbits.TON = 1;      // turn on Timer1
 
+    //Timer 2 to account for the button debouncing
+    T2CON = 0X0030;         // set Timer2 period of 0.5 seconds
+    PR2 = 0x7A11;
+    TMR2 = 0;               // set initial timer count to 0
+    IFS0bits.T2IF = 0;      // lower Timer2 interrupt flag
+    T2CONbits.TON = 1;      // turn on Timer2
+
     LED2 = ON;
+    int mode = 2;
+    int hasbeenup = 1;
 
     while (1) {
-        if (IFS0bits.T1IF == 1) {
-            IFS0bits.T1IF = 0;      // lower Timer1 interrupt flag
-            LED2 = !LED2;           // toggle LED2
+        if (D0 == 1 && IFS0bits.T2IF == 0  && hasbeenup == 1){ // button changes which LED is blinking - and which two are controlled by the switches
+            IFS0bits.T1IF == 0;
+            hasbeenup = 0; 
+            if (mode == 3){
+                mode = 1;
+                LED1 = ON; //turns on LED 1
+            }
+            else if (mode == 2){
+                mode = 3;
+                LED3 = ON; //turns on LED 3
+            }
+
+            else {
+                mode = 2;
+                LED2 = ON; //turns on LED 2
+            }
+        }   
+
+        if (D0 == 0 && IFS0bits.T2IF == 1){
+            hasbeenup = 1;
+            IFS0bits.T2IF = 0;
         }
-        LED1 = (SW2 == 0) ? ON : OFF;   // turn LED1 on if SW2 is pressed 
-        LED3 = (SW3 == 0) ? ON : OFF;   // turn LED3 on if SW3 is pressed
+
+        if (mode == 2){
+            if (IFS0bits.T1IF == 1) {
+                IFS0bits.T1IF = 0;      // lower Timer1 interrupt flag
+                LED2 = !LED2;           // toggle LED2
+            }
+            LED1 = (SW2 == 0) ? ON : OFF;   // turn LED1 on if SW2 is pressed 
+            LED3 = (SW3 == 0) ? ON : OFF;   // turn LED3 on if SW3 is pressed
+        }
+        else if (mode == 1){
+            if (IFS0bits.T1IF == 1) {
+                IFS0bits.T1IF = 0;      // lower Timer1 interrupt flag
+                LED1 = !LED1;           // toggle LED2
+            }
+            LED3 = (SW2 == 0) ? ON : OFF;   // turn LED3 on if SW2 is pressed 
+            LED2 = (SW3 == 0) ? ON : OFF;   // turn LED2 on if SW3 is pressed
+        }
+        else {
+             if (IFS0bits.T1IF == 1) {
+                IFS0bits.T1IF = 0;      // lower Timer1 interrupt flag
+                LED3 = !LED3;           // toggle LED2
+            }
+            LED2 = (SW2 == 0) ? ON : OFF;   // turn LED2 on if SW2 is pressed 
+            LED1 = (SW3 == 0) ? ON : OFF;   // turn LED1 on if SW3 is pressed
+        }
+
+        
     }
 }
 
