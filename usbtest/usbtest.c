@@ -110,16 +110,19 @@ int16_t main(void) {
 
     init_elecanisms();
 
-    // Configure pin D13 to produce a 1-kHz PWM signal with a 25% duty cycle
+    // Configure pin D8 to produce a 1-kHz PWM signal with a 25% duty cycle
     // using the OC1 module.
-    D13_DIR = OUT;      // configure D13 to be a digital output
-    D13 = 0;            // set D13 low
+    D8_DIR = OUT;      // configure D8 to be a digital output
+    D8 = 0;            // set D8 low
+
+    D7_DIR = OUT;      // configure D7 to be a digital output (IN2)
+    D7 = 0; 
 
     RPOR = (uint8_t *)&RPOR0;
     RPINR = (uint8_t *)&RPINR0;
 
     __builtin_write_OSCCONL(OSCCON & 0xBF);
-    RPOR[D13_RP] = OC1_RP;  // connect the OC1 module output to pin D13
+    RPOR[D8_RP] = OC1_RP;  // connect the OC1 module output to pin D8
     __builtin_write_OSCCONL(OSCCON | 0x40);
 
     OC1CON1 = 0x1C06;   // configure OC1 module to use the peripheral 
@@ -129,7 +132,7 @@ int16_t main(void) {
     OC1CON2 = 0x001F;   // configure OC1 module to syncrhonize to itself
                         //   (i.e., OCTRIG = 0 and SYNCSEL<4:0> = 0b11111)
 
-    OC1RS = (uint16_t)(FCY / 1e3 - 1.);     // configure period register to 
+    OC1RS = (uint16_t)(FCY / 1e4 - 1.);     // configure period register to 
                                             //   get a frequency of 1kHz
     OC1R = OC1RS >> 2;  // configure duty cycle to 25% (i.e., period / 4)
     OC1TMR = 0;         // set OC1 timer count to 0
